@@ -1501,7 +1501,7 @@ static void decode_RV32_64C0(DisasContext *ctx)
 #else
         /* C.FSW (RV32) -> fsw rs2', offset[6:2](rs1')*/
         gen_fp_store(ctx, OPC_RISC_FSW, rs1s, rd_rs2,
-                     GET_C_LD_IMM(ctx->opcode));
+                     GET_C_LW_IMM(ctx->opcode));
 #endif
         break;
     }
