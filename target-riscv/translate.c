@@ -38,6 +38,7 @@
 static TCGv_ptr cpu_env;
 static TCGv cpu_gpr[32], cpu_pc;
 static TCGv_i64 cpu_fpr[32]; /* assume F and D extensions */
+static TCGv_i64 cpu_fpr_hipart[32]; /* For Q extensions */
 static TCGv load_res;
 #ifdef CONFIG_USER_ONLY
 static TCGv_i32 cpu_amoinsn;
@@ -686,6 +687,7 @@ static void gen_fp_load(DisasContext *ctx, uint32_t opc, int rd,
         int rs1, target_long imm)
 {
     TCGv t0 = tcg_temp_new();
+    TCGv t1 = tcg_temp_new();
 #if !defined(CONFIG_USER_ONLY)
     TCGLabel *fp_ok = gen_new_label();
     TCGLabel *done = gen_new_label();
@@ -711,6 +713,11 @@ static void gen_fp_load(DisasContext *ctx, uint32_t opc, int rd,
     case OPC_RISC_FLD:
         tcg_gen_qemu_ld_i64(cpu_fpr[rd], t0, ctx->mem_idx, MO_TEQ);
         break;
+    case OPC_RISC_FLQ:
+        tcg_gen_qemu_ld_i64(cpu_fpr[rd], t0, ctx->mem_idx, MO_TEQ);
+        tcg_gen_addi_tl(t1, t0, 8);
+        tcg_gen_qemu_ld_i64(cpu_fpr_hipart[rd], t1, ctx->mem_idx, MO_TEQ);
+        break;
     default:
         kill_unknown(ctx, RISCV_EXCP_ILLEGAL_INST);
         break;
@@ -719,6 +726,7 @@ static void gen_fp_load(DisasContext *ctx, uint32_t opc, int rd,
     gen_set_label(done);
 #endif
     tcg_temp_free(t0);
+    tcg_temp_free(t1);
 }
 
 static void gen_fp_store(DisasContext *ctx, uint32_t opc, int rs1,
@@ -750,6 +758,11 @@ static void gen_fp_store(DisasContext *ctx, uint32_t opc, int rs1,
         break;
     case OPC_RISC_FSD:
         tcg_gen_qemu_st_i64(cpu_fpr[rs2], t0, ctx->mem_idx, MO_TEQ);
+        break;
+    case OPC_RISC_FSQ:
+        tcg_gen_qemu_st_i64(cpu_fpr[rs2], t0, ctx->mem_idx, MO_TEQ);
+        tcg_gen_addi_tl(t1, t0, 8);
+        tcg_gen_qemu_st_i64(cpu_fpr_hipart[rs2], t1, ctx->mem_idx, MO_TEQ);
         break;
     default:
         kill_unknown(ctx, RISCV_EXCP_ILLEGAL_INST);
@@ -1014,6 +1027,13 @@ static void gen_fp_arith(DisasContext *ctx, uint32_t opc, int rd,
     TCGv_i64 rm_reg = tcg_temp_new_i64();
     TCGv write_int_rd = tcg_temp_new();
     tcg_gen_movi_i64(rm_reg, rm);
+
+    TCGv frd_regno = tcg_temp_new();
+    TCGv frs1_regno = tcg_temp_new();
+    TCGv frs2_regno = tcg_temp_new();
+    tcg_gen_movi_tl(frd_regno, rd);
+    tcg_gen_movi_tl(frs1_regno, rs1);
+    tcg_gen_movi_tl(frs2_regno, rs2);
 
     switch (opc) {
     case OPC_RISC_FADD_S:
@@ -1332,12 +1352,23 @@ static void gen_fp_arith(DisasContext *ctx, uint32_t opc, int rd,
             break;
         }
 #endif
+    /* double */
+    case OPC_RISC_FADD_Q:
+        gen_helper_fadd_q(cpu_env, frd_regno, frs1_regno, frs2_regno, rm_reg);
+        break;
+    case OPC_RISC_FSUB_Q:
+        gen_helper_fadd_q(cpu_env, frd_regno, frs1_regno, frs2_regno, rm_reg);
+        break;
+
     default:
         kill_unknown(ctx, RISCV_EXCP_ILLEGAL_INST);
         break;
     }
     tcg_temp_free_i64(rm_reg);
     tcg_temp_free(write_int_rd);
+    tcg_temp_free(frd_regno);
+    tcg_temp_free(frs1_regno);
+    tcg_temp_free(frs2_regno);
 }
 
 static void gen_system(DisasContext *ctx, uint32_t opc,
@@ -2021,6 +2052,11 @@ void riscv_tcg_init(void)
     for (i = 0; i < 32; i++) {
         cpu_fpr[i] = tcg_global_mem_new_i64(cpu_env,
                              offsetof(CPURISCVState, fpr[i]), fpr_regnames[i]);
+    }
+
+    for (i = 0; i < 32; i++) {
+        cpu_fpr_hipart[i] = tcg_global_mem_new_i64(cpu_env,
+                                    offsetof(CPURISCVState, fpr_hipart[i]), fpr_regnames[i]);
     }
 
     cpu_pc = tcg_global_mem_new(cpu_env, offsetof(CPURISCVState, pc), "pc");

@@ -65,6 +65,7 @@ typedef struct CPURISCVState CPURISCVState;
 struct CPURISCVState {
     target_ulong gpr[32];
     uint64_t fpr[32]; /* assume both F and D extensions */
+    uint64_t fpr_hipart[32]; /* For Q extensions */
     target_ulong pc;
     target_ulong load_res;
 

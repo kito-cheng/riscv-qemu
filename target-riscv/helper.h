@@ -65,6 +65,10 @@ DEF_HELPER_FLAGS_3(fcvt_d_lu, TCG_CALL_NO_RWG, i64, env, i64, i64)
 #endif
 DEF_HELPER_FLAGS_2(fclass_d, TCG_CALL_NO_RWG, tl, env, i64)
 
+/* Floating Point - Quad Precision */
+DEF_HELPER_5(fadd_q, void, env, tl, tl, tl, i64)
+DEF_HELPER_5(fsub_q, void, env, tl, tl, tl, i64)
+
 /* Special functions */
 DEF_HELPER_3(csrrw, tl, env, tl, tl)
 DEF_HELPER_4(csrrs, tl, env, tl, tl, tl)

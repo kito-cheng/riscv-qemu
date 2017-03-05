@@ -200,12 +200,14 @@ enum {
 enum {
     OPC_RISC_FLW   = OPC_RISC_FP_LOAD | (0x2 << 12),
     OPC_RISC_FLD   = OPC_RISC_FP_LOAD | (0x3 << 12),
+    OPC_RISC_FLQ   = OPC_RISC_FP_LOAD | (0x4 << 12),
 };
 
 #define MASK_OP_FP_STORE(op)   (MASK_OP_MAJOR(op) | (op & (0x7 << 12)))
 enum {
     OPC_RISC_FSW   = OPC_RISC_FP_STORE | (0x2 << 12),
     OPC_RISC_FSD   = OPC_RISC_FP_STORE | (0x3 << 12),
+    OPC_RISC_FSQ   = OPC_RISC_FP_STORE | (0x4 << 12),
 };
 
 #define MASK_OP_FP_FMADD(op)   (MASK_OP_MAJOR(op) | (op & (0x3 << 25)))
@@ -305,6 +307,48 @@ enum {
     OPC_RISC_FCLASS_D  = OPC_RISC_FP_ARITH | (0x71 << 25),
 
     OPC_RISC_FMV_D_X   = OPC_RISC_FP_ARITH | (0x79 << 25),
+
+    /* quad */
+    OPC_RISC_FADD_Q    = OPC_RISC_FP_ARITH | (0x3 << 25),
+    OPC_RISC_FSUB_Q    = OPC_RISC_FP_ARITH | (0x7 << 25),
+    OPC_RISC_FMUL_Q    = OPC_RISC_FP_ARITH | (0xB << 25),
+    OPC_RISC_FDIV_Q    = OPC_RISC_FP_ARITH | (0xF << 25),
+
+    OPC_RISC_FSGNJ_Q   = OPC_RISC_FP_ARITH | (0x13 << 25),
+    OPC_RISC_FSGNJN_Q  = OPC_RISC_FP_ARITH | (0x13 << 25),
+    OPC_RISC_FSGNJX_Q  = OPC_RISC_FP_ARITH | (0x13 << 25),
+
+    OPC_RISC_FMIN_Q    = OPC_RISC_FP_ARITH | (0x17 << 25),
+    OPC_RISC_FMAX_Q    = OPC_RISC_FP_ARITH | (0x17 << 25),
+
+    OPC_RISC_FCVT_S_Q = OPC_RISC_FP_ARITH | (0x20 << 25),
+
+    OPC_RISC_FCVT_Q_S = OPC_RISC_FP_ARITH | (0x23 << 25),
+
+    OPC_RISC_FCVT_D_Q = OPC_RISC_FP_ARITH | (0x21 << 25),
+
+    OPC_RISC_FCVT_Q_D = OPC_RISC_FP_ARITH | (0x23 << 25),
+
+    OPC_RISC_FSQRT_Q   = OPC_RISC_FP_ARITH | (0x2F << 25),
+
+    OPC_RISC_FEQ_Q     = OPC_RISC_FP_ARITH | (0x53 << 25),
+    OPC_RISC_FLT_Q     = OPC_RISC_FP_ARITH | (0x53 << 25),
+    OPC_RISC_FLE_Q     = OPC_RISC_FP_ARITH | (0x53 << 25),
+
+    OPC_RISC_FCVT_W_Q  = OPC_RISC_FP_ARITH | (0x63 << 25),
+    OPC_RISC_FCVT_WU_Q = OPC_RISC_FP_ARITH | (0x63 << 25),
+    OPC_RISC_FCVT_L_Q  = OPC_RISC_FP_ARITH | (0x63 << 25),
+    OPC_RISC_FCVT_LU_Q = OPC_RISC_FP_ARITH | (0x63 << 25),
+
+    OPC_RISC_FCVT_Q_W  = OPC_RISC_FP_ARITH | (0x6B << 25),
+    OPC_RISC_FCVT_Q_WU = OPC_RISC_FP_ARITH | (0x6B << 25),
+    OPC_RISC_FCVT_Q_L  = OPC_RISC_FP_ARITH | (0x6B << 25),
+    OPC_RISC_FCVT_Q_LU = OPC_RISC_FP_ARITH | (0x6B << 25),
+
+    OPC_RISC_FMV_X_Q   = OPC_RISC_FP_ARITH | (0x73 << 25),
+    OPC_RISC_FCLASS_Q  = OPC_RISC_FP_ARITH | (0x73 << 25),
+
+    OPC_RISC_FMV_Q_X   = OPC_RISC_FP_ARITH | (0x7B << 25),
 };
 
 #define GET_B_IMM(inst) (extract32(inst, 8, 4) << 1)    \

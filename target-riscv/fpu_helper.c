@@ -594,3 +594,45 @@ target_ulong helper_fclass_d(CPURISCVState *env, uint64_t frs1)
     frs1 = float64_classify(frs1, &env->fp_status);
     return frs1;
 }
+
+inline float128 float128_read_helper(CPURISCVState *env, target_ulong fregno)
+{
+    return make_float128(env->fpr_hipart[fregno], env->fpr[fregno]);
+}
+
+inline void float128_write_helper(CPURISCVState *env,
+                                  target_ulong fregno, float128 value)
+{
+    env->fpr_hipart[fregno] = value.high;
+    env->fpr[fregno] = value.low;
+}
+
+void helper_fadd_q(CPURISCVState *env,
+                   target_ulong frd_regno,
+                   target_ulong frs1_regno,
+                   target_ulong frs2_regno,
+                   uint64_t rm)
+{
+    require_fp;
+    set_float_rounding_mode(RM, &env->fp_status);
+    float128 frs1 = float128_read_helper(env, frs1_regno);
+    float128 frs2 = float128_read_helper(env, frs2_regno);
+    float128 frd = float128_add(frs1, frs2, &env->fp_status);
+    float128_write_helper(env, frd_regno, frd);
+    set_fp_exceptions();
+}
+
+void helper_fsub_q(CPURISCVState *env,
+                   target_ulong frd_regno,
+                   target_ulong frs1_regno,
+                   target_ulong frs2_regno,
+                   uint64_t rm)
+{
+    require_fp;
+    set_float_rounding_mode(RM, &env->fp_status);
+    float128 frs1 = float128_read_helper(env, frs1_regno);
+    float128 frs2 = float128_read_helper(env, frs2_regno);
+    float128 frd = float128_sub(frs1, frs2, &env->fp_status);
+    float128_write_helper(env, frd_regno, frd);
+    set_fp_exceptions();
+}
